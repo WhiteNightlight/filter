@@ -6,78 +6,85 @@
   <title>دریافت سریع V2Ray</title>
   <style>
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: sans-serif;
       background: #0a0a0f;
-      color: rgba(255, 255, 255, 0.95);
+      color: #fff;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+      margin: 0;
       padding: 20px;
     }
-    .button-box {
-      background: rgba(15, 23, 42, 0.4);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      border-radius: 24px;
-      padding: 40px;
-      text-align: center;
-      width: 90%;
+    .box {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 40px 30px;
+      border-radius: 20px;
       max-width: 400px;
+      width: 100%;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .btn {
-      background: rgba(59, 130, 246, 0.1);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      color: #fff;
       padding: 16px 32px;
+      background: #2563eb;
+      border: none;
+      color: #fff;
       font-size: 1rem;
-      font-weight: 600;
       border-radius: 12px;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: 0.3s;
       width: 100%;
+      margin-top: 20px;
     }
     .btn:hover {
-      transform: scale(1.02);
-      box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
+      background: #1e40af;
     }
     .status {
       margin-top: 20px;
-      font-size: 1rem;
-      color: #22c55e;
+      font-size: 0.95rem;
+      color: #10b981;
+      min-height: 24px;
     }
   </style>
 </head>
 <body>
-  <div class="button-box">
-    <h2>دریافت و انتقال کانفیگ به Hiddify</h2>
-    <button class="btn" id="fetchBtn">📡 دریافت کانفیگ</button>
+  <div class="box">
+    <h2>🚀 انتقال خودکار کانفیگ</h2>
+    <p>با یک کلیک، کانفیگ را دریافت و وارد Hiddify کنید</p>
+    <button class="btn" id="fetchBtn">📡 دریافت و نصب</button>
     <div class="status" id="status"></div>
   </div>
 
   <script>
+    const URL = 'https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/Sub1.txt';
+
     document.getElementById('fetchBtn').addEventListener('click', async () => {
       const status = document.getElementById('status');
-      status.innerText = 'در حال دریافت…';
-      try {
-        const res = await fetch('https://raw.githubusercontent.com/Epodonios/v2ray-configs/refs/heads/main/Sub1.txt');
-        if (!res.ok) throw new Error();
-        const data = await res.text();
-        const link = data.trim(); // فرض: فقط یک سابسکریپشن لینکی
-        
-        status.innerText = 'کپی لینک سابسکریپشن…';
-        await navigator.clipboard.writeText(link);
+      status.innerText = 'در حال دریافت کانفیگ...';
 
-        // باز کردن Hiddify با سابسکریپشن:
-        const deeplink = `hiddify://import/${encodeURIComponent(link)}#دریافت_آنلاین`;
+      try {
+        const res = await fetch(URL);
+        if (!res.ok) throw new Error('دانلود ناموفق بود');
+
+        const data = await res.text();
+        if (!data.startsWith('http')) throw new Error('فرمت نادرست است');
+
+        // Copy to clipboard
+        await navigator.clipboard.writeText(data);
+        status.innerText = '✅ کانفیگ کپی شد، در حال باز کردن Hiddify...';
+
+        // Open Hiddify via URL scheme
+        const deeplink = `hiddify://import/${URL}#دریافت_اتوماتیک`;
         const a = document.createElement('a');
         a.href = deeplink;
+        a.style.display = 'none';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
 
-        status.innerText = 'لینک ارسال شد به Hiddify!';
-      } catch(err) {
+      } catch (err) {
         console.error(err);
         status.innerText = '❌ خطا در دریافت یا ارسال به Hiddify';
       }
