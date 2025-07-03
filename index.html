@@ -56,26 +56,30 @@
   </div>
 
   <script>
-    const URL = 'https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/Sub1.txt';
-    document.getElementById('btn').addEventListener('click', async () => {
-      const s = document.getElementById('status');
-      s.innerText = 'در حال دریافت…';
+    document.getElementById('fetchBtn').addEventListener('click', async () => {
+      const status = document.getElementById('status');
+      status.innerText = 'در حال دریافت…';
       try {
-        const resp = await fetch(URL);
-        if (!resp.ok) throw 'fail';
-        const body = await resp.text();
-        navigator.clipboard.writeText(body);
-        s.innerText = 'کپی شد، در حال نصب…';
+        const res = await fetch('https://raw.githubusercontent.com/Epodonios/v2ray-configs/refs/heads/main/Sub1.txt');
+        if (!res.ok) throw new Error();
+        const data = await res.text();
+        const link = data.trim(); // فرض: فقط یک سابسکریپشن لینکی
+        
+        status.innerText = 'کپی لینک سابسکریپشن…';
+        await navigator.clipboard.writeText(link);
 
+        // باز کردن Hiddify با سابسکریپشن:
+        const deeplink = `hiddify://import/${encodeURIComponent(link)}#دریافت_آنلاین`;
         const a = document.createElement('a');
-        a.href = `hiddify://import/${URL}#${encodeURIComponent('دریافت-آنلاین')}`;
+        a.href = deeplink;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        s.innerText = '✔️ نصب در حال انجام است';
-      } catch (err) {
+
+        status.innerText = 'لینک ارسال شد به Hiddify!';
+      } catch(err) {
         console.error(err);
-        s.innerText = '❌ خطا در دانلود یا اکشن';
+        status.innerText = '❌ خطا در دریافت یا ارسال به Hiddify';
       }
     });
   </script>
