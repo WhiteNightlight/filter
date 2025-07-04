@@ -4,7 +4,114 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>دریافت سریع V2Ray</title>
-  <style>/* (Insert your existing CSS unchanged) */</style>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+      background: linear-gradient(135deg, #0a0a0f, #1a1a2e);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .box {
+      background: rgba(255,255,255,0.08);
+      padding: 40px 30px;
+      border-radius: 20px;
+      max-width: 450px;
+      width: 100%;
+      text-align: center;
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .btn {
+      padding: 16px 32px;
+      background: linear-gradient(135deg, #2563eb, #1e40af);
+      border: none;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      margin-top: 20px;
+    }
+    .btn:hover {
+      background: linear-gradient(135deg, #1e40af, #1e3a8a);
+      transform: translateY(-2px);
+    }
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+    }
+    .status {
+      margin-top: 20px;
+      font-size: 0.95rem;
+      color: #10b981;
+      min-height: 24px;
+      font-weight: 500;
+    }
+    .error { color: #ef4444; }
+    .config-display {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.8rem;
+      max-height: 200px;
+      overflow-y: auto;
+      word-break: break-word;
+      display: none;
+    }
+    .step-instructions {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(59,130,246,0.1);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      display: none;
+    }
+    .step-instructions ol {
+      text-align: right;
+      margin: 10px 0;
+    }
+    .step-instructions li {
+      margin: 8px 0;
+    }
+    .copy-btn {
+      background: #059669;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-top: 10px;
+    }
+    .copy-btn:hover { background: #047857; }
+    .select-text {
+      user-select: all;
+      cursor: pointer;
+      border: 2px dashed rgba(255,255,255,0.3);
+      padding: 10px;
+    }
+    .select-text:hover { border-color: rgba(255,255,255,0.5); }
+    h2 { margin-bottom: 10px; color: #f8fafc; }
+    p { opacity: 0.9; line-height: 1.6; }
+  </style>
 </head>
 <body>
   <div class="box">
@@ -16,7 +123,14 @@
     <div class="config-display" id="configDisplay"></div>
     <div class="step-instructions" id="instructions">
       <strong>مراحل نصب دستی:</strong>
-      <ol>/* … */</ol>
+      <ol>
+        <li>روی متن زیر کلیک کنید تا انتخاب شود</li>
+        <li>Ctrl+C یا Cmd+C بزنید تا کپی شود</li>
+        <li>اپلیکیشن Hiddify را باز کنید</li>
+        <li>روی دکمه "+" یا "افزودن" کلیک کنید</li>
+        <li>گزینه "از کلیپ‌برد" را انتخاب کنید</li>
+        <li>یا کانفیگ را paste کنید</li>
+      </ol>
       <button class="copy-btn" id="manualCopyBtn">🔄 تلاش مجدد کپی</button>
     </div>
   </div>
@@ -32,118 +146,115 @@
     const passwordInput = document.getElementById('passwordInput');
 
     async function hashSHA256(text) {
-      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+      const msgUint8 = new TextEncoder().encode(text);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    async function getServerHash() {
+    async function getRemoteHash() {
       const res = await fetch(PASSWORD_HASH_URL);
-      if (!res.ok) throw new Error('خطا در دریافت رمز');
+      if (!res.ok) throw new Error('خطا در دریافت رمز عبور');
       return (await res.text()).trim();
     }
 
-    async function checkStoredPass() {
+    async function checkStoredPassword() {
       const saved = localStorage.getItem('config_pass');
       if (!saved) return false;
-      if (await hashSHA256(saved) === await getServerHash()) {
+      const userHash = await hashSHA256(saved);
+      const remoteHash = await getRemoteHash();
+      if (userHash === remoteHash) {
         passwordInput.style.display = 'none';
         return true;
-      }
-      localStorage.removeItem('config_pass');
-      passwordInput.style.display = 'block';
-      return false;
-    }
-
-    async function validateAndStore() {
-      const val = passwordInput.value.trim();
-      if (!val) { status.innerText='⚠️ رمز را وارد کنید'; status.className='status error'; return false; }
-      if (await hashSHA256(val) !== await getServerHash()) {
-        status.innerText='❌ رمز اشتباه است'; status.className='status error';
+      } else {
+        localStorage.removeItem('config_pass');
+        passwordInput.style.display = 'block';
         return false;
       }
-      localStorage.setItem('config_pass', val);
+    }
+
+    async function validatePassword() {
+      const input = passwordInput.value.trim();
+      if (!input) {
+        status.innerText = '⚠️ لطفاً رمز عبور را وارد کنید';
+        status.className = 'status error';
+        return false;
+      }
+      const userHash = await hashSHA256(input);
+      const remoteHash = await getRemoteHash();
+      if (userHash !== remoteHash) {
+        status.innerText = '❌ رمز عبور اشتباه است';
+        status.className = 'status error';
+        return false;
+      }
+      localStorage.setItem('config_pass', input);
       passwordInput.style.display = 'none';
       return true;
     }
 
-    fetchBtn.addEventListener('click', async () => {
-      configDisplay.style.display = instructions.style.display = 'none';
-      fetchBtn.disabled = true;
-      status.innerText = ''; status.className = 'status';
-
-      if (!await checkStoredPass() && !await validateAndStore()) {
-        fetchBtn.disabled = false;
-        return;
-      }
-
+    async function copyToClipboard(text) {
       try {
-        status.innerText = 'در حال دریافت کانفیگ...';
-        const res = await fetch(CONFIG_URL);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const text = await res.text();
-        if (!text.trim()) throw new Error('کانفیگ خالی است');
-
-        configDisplay.innerText = text;
-        configDisplay.style.display = 'block';
-        configDisplay.className = 'config-display select-text';
-
-        const ok = await copyClipboard(text);
-        status.innerText = ok ? '✅ کانفیگ کپی شد!' : '✅ کانفیگ دریافت شد (کپی دستی)';
-
-        tryImportHiddify();
-      } catch (e) {
-        status.innerText = `❌ خطا: ${e.message}`;
-        status.className = 'status error';
-        instructions.style.display = 'block';
-      } finally {
-        fetchBtn.disabled = false;
-      }
-    });
-
-    async function copyClipboard(txt) {
-      try { await navigator.clipboard.writeText(txt); return true; }
-      catch {
-        const ta=document.createElement('textarea');
-        ta.value=txt; document.body.appendChild(ta);
-        ta.select(); const ok=document.execCommand('copy');
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        const success = document.execCommand('copy');
         document.body.removeChild(ta);
-        return ok;
+        return success;
       }
     }
 
     document.getElementById('manualCopyBtn').onclick = async () => {
-      const success = await copyClipboard(configDisplay.innerText);
+      const text = configDisplay.innerText;
+      const success = await copyToClipboard(text);
       const btn = document.getElementById('manualCopyBtn');
       btn.innerText = success ? '✅ کپی شد!' : '❌ کپی نشد';
       setTimeout(() => btn.innerText = '🔄 تلاش مجدد کپی', 2000);
     };
 
-    function tryImportHiddify() {
-      const url = encodeURIComponent(CONFIG_URL);
-      const schemes = [
-        `hiddify://import/${url}#دریافت`,
-        `hiddify://install-sub?url=${url}#دریافت`,
-        `hiddify://install-config?url=${url}#دریافت`,
-        `hiddify://install-proxy?url=${url}#دریافت`
-      ];
+    fetchBtn.onclick = async () => {
+      configDisplay.style.display = instructions.style.display = 'none';
+      status.innerText = '';
+      fetchBtn.disabled = true;
 
-      const ua = navigator.userAgent;
-      schemes.forEach(link => {
-        setTimeout(() => {
-          const a = document.createElement('a');
-          a.href = link;
-          a.click();
-        },0);
-      });
+      const valid = await checkStoredPassword() || await validatePassword();
+      if (!valid) {
+        fetchBtn.disabled = false;
+        return;
+      }
 
-      // After attempts, show manual if needed
-      setTimeout(() => {
-        status.innerText = '⚠️ اگر Hiddify باز نشد، لطفاً دستی اضافه کنید';
-        instructions.style.display = 'block';
-      }, 1500);
-    }
+      // ✅ Trigger Hiddify install-sub link FIRST (direct user gesture)
+      const encodedURL = encodeURIComponent(CONFIG_URL);
+      window.location.href = `hiddify://install-sub?url=${encodedURL}`;
 
-    checkStoredPass();
+      // ⏳ Then wait and fetch config
+      setTimeout(async () => {
+        try {
+          status.innerText = 'در حال دریافت کانفیگ...';
+          const res = await fetch(CONFIG_URL);
+          const text = (await res.text()).trim();
+          if (!text) throw new Error('فایل کانفیگ خالی است');
+
+          configDisplay.innerText = text;
+          configDisplay.style.display = 'block';
+          configDisplay.className = 'config-display select-text';
+
+          const copied = await copyToClipboard(text);
+          status.innerText = copied ? '✅ کانفیگ کپی شد و Hiddify باز شد!' : '✅ دریافت شد (کپی دستی)';
+
+        } catch (err) {
+          status.innerText = `❌ خطا: ${err.message}`;
+          status.className = 'status error';
+          instructions.style.display = 'block';
+        } finally {
+          fetchBtn.disabled = false;
+        }
+      }, 300);
+    };
+
+    checkStoredPassword();
   </script>
 </body>
 </html>
