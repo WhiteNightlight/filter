@@ -10,13 +10,11 @@
       background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
       color: #fff;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       margin: 0;
       padding: 20px;
-      padding-bottom: 50px; /* Reduced space for narrower footer */
     }
     .box {
       background: rgba(255, 255, 255, 0.08);
@@ -48,9 +46,6 @@
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
     }
-    .btn:active {
-      transform: translateY(0);
-    }
     .btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
@@ -75,7 +70,7 @@
       font-size: 0.8rem;
       max-height: 200px;
       overflow-y: auto;
-      word-break: break-all;
+      word-break: break-word;
       display: none;
     }
     .step-instructions {
@@ -116,6 +111,14 @@
     .select-text:hover {
       border-color: rgba(255, 255, 255, 0.5);
     }
+    input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+    }
     h2 {
       margin-bottom: 10px;
       color: #f8fafc;
@@ -124,74 +127,13 @@
       opacity: 0.9;
       line-height: 1.6;
     }
-    
-    /* Footer Ticker - Improved */
-    .footer-ticker {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 35px; /* Narrower height */
-      background: rgba(10, 10, 15, 0.3); /* More transparent, matching background */
-      backdrop-filter: blur(8px);
-      border-top: 1px solid rgba(255, 255, 255, 0.06); /* More subtle border */
-      overflow: hidden;
-      z-index: 1000;
-    }
-    .ticker-content {
-      position: absolute;
-      white-space: nowrap;
-      animation: scroll-left 45s linear infinite; /* Slower animation */
-      line-height: 35px; /* Match new height */
-      font-size: 0.85rem; /* Slightly smaller font */
-      color: rgba(229, 231, 235, 0.7); /* More transparent text */
-      font-weight: 400; /* Lighter font weight */
-    }
-    @keyframes scroll-left {
-      0% {
-        transform: translateX(100%);
-      }
-      100% {
-        transform: translateX(-100%);
-      }
-    }
-    .ticker-content:hover {
-      animation-play-state: paused;
-    }
-    .ticker-item {
-      display: inline-block;
-      margin: 0 50px;
-      cursor: pointer;
-      transition: color 0.3s ease;
-    }
-    .ticker-item:hover {
-      color: rgba(96, 165, 250, 0.9); /* Slightly more transparent on hover */
-    }
-    .ticker-item .emoji {
-      margin-left: 8px;
-    }
-    
-    @media (max-width: 768px) {
-      .ticker-content {
-        font-size: 0.75rem;
-        animation-duration: 35s; /* Slower on mobile too */
-      }
-      .ticker-item {
-        margin: 0 30px;
-      }
-      .footer-ticker {
-        height: 30px; /* Even narrower on mobile */
-      }
-      .ticker-content {
-        line-height: 30px;
-      }
-    }
   </style>
 </head>
 <body>
   <div class="box">
     <h2>🚀 انتقال خودکار کانفیگ</h2>
     <p>با یک کلیک، کانفیگ را دریافت و وارد Hiddify کنید</p>
+    <input type="password" id="passwordInput" placeholder="رمز عبور را وارد کنید" />
     <button class="btn" id="fetchBtn">📡 دریافت و نصب</button>
     <div class="status" id="status"></div>
     <div class="config-display" id="configDisplay"></div>
@@ -209,81 +151,90 @@
     </div>
   </div>
 
-  <!-- Footer Ticker -->
-  <div class="footer-ticker">
-    <div class="ticker-content">
-      <span class="ticker-item" onclick="openLink('https://github.com/yourusername')">
-        <span class="emoji">👨‍💻</span>
-        درباره من: توسعه‌دهنده نرم‌افزار با تجربه در پروژه‌های متن‌باز
-      </span>
-      <span class="ticker-item" onclick="openLink('https://github.com/yourusername/project1')">
-        <span class="emoji">🚀</span>
-        پروژه جدید: سیستم مدیریت کانفیگ V2Ray با رابط کاربری مدرن
-      </span>
-      <span class="ticker-item" onclick="openLink('https://t.me/yourusername')">
-        <span class="emoji">📱</span>
-        تماس با من: @yourusername در تلگرام برای همکاری و پشتیبانی
-      </span>
-      <span class="ticker-item" onclick="openLink('https://github.com/yourusername/configs')">
-        <span class="emoji">⚙️</span>
-        کانفیگ‌های جدید: بروزرسانی روزانه با بهترین سرورها
-      </span>
-      <span class="ticker-item" onclick="openLink('https://github.com/yourusername/tools')">
-        <span class="emoji">🛠️</span>
-        ابزارهای جانبی: مجموعه ابزارهای کاربردی برای شبکه و امنیت
-      </span>
-    </div>
-  </div>
-
   <script>
-    const URL = 'https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/Sub1.txt';
+    const CONFIG_URL = 'https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/Sub1.txt';
+    const PASSWORD_HASH_URL = 'https://gist.githubusercontent.com/WhiteNightlight/8d4d5b6d696d9e7c0db021f70364d469/raw/vas';
 
-    // Function to handle ticker item clicks
-    function openLink(url) {
-      window.open(url, '_blank');
+    const status = document.getElementById('status');
+    const fetchBtn = document.getElementById('fetchBtn');
+    const configDisplay = document.getElementById('configDisplay');
+    const instructions = document.getElementById('instructions');
+
+    async function hashSHA256(text) {
+      const msgUint8 = new TextEncoder().encode(text);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    document.getElementById('fetchBtn').addEventListener('click', async () => {
-      const status = document.getElementById('status');
-      const configDisplay = document.getElementById('configDisplay');
-      const instructions = document.getElementById('instructions');
-      const fetchBtn = document.getElementById('fetchBtn');
-      
-      // Reset UI
+    async function getStoredHashFromServer() {
+      const res = await fetch(PASSWORD_HASH_URL);
+      if (!res.ok) throw new Error('خطا در دریافت رمز عبور');
+      return (await res.text()).trim();
+    }
+
+    async function validatePassword() {
+      const input = document.getElementById('passwordInput').value.trim();
+      if (!input) {
+        status.innerText = '⚠️ لطفاً رمز عبور را وارد کنید';
+        status.className = 'status error';
+        return false;
+      }
+
+      const hash = await hashSHA256(input);
+      const validHash = await getStoredHashFromServer();
+
+      if (hash !== validHash) {
+        status.innerText = '❌ رمز عبور اشتباه است';
+        status.className = 'status error';
+        return false;
+      }
+
+      localStorage.setItem('config_pass', input);
+      return true;
+    }
+
+    async function checkSavedPassword() {
+      const savedPass = localStorage.getItem('config_pass');
+      if (!savedPass) return false;
+      const hash = await hashSHA256(savedPass);
+      const validHash = await getStoredHashFromServer();
+      return hash === validHash;
+    }
+
+    fetchBtn.addEventListener('click', async () => {
       configDisplay.style.display = 'none';
       instructions.style.display = 'none';
       fetchBtn.disabled = true;
-      
-      status.innerText = 'در حال دریافت کانفیگ...';
+      status.innerText = '';
       status.className = 'status';
 
+      const valid = await checkSavedPassword() || await validatePassword();
+      if (!valid) {
+        fetchBtn.disabled = false;
+        return;
+      }
+
       try {
-        const res = await fetch(URL);
-        if (!res.ok) throw new Error(`HTTP ${res.status}: دانلود ناموفق بود`);
+        status.innerText = 'در حال دریافت کانفیگ...';
+        const res = await fetch(CONFIG_URL);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.text();
+        if (!data.trim()) throw new Error('کانفیگ خالی است');
 
-        const data = await res.text().then(text => text.trim());
-        if (!data) throw new Error('فایل خالی است');
-
-        // نمایش کانفیگ
         configDisplay.innerText = data;
         configDisplay.style.display = 'block';
         configDisplay.className = 'config-display select-text';
-        configDisplay.title = 'کلیک کنید تا انتخاب شود';
 
-        // تلاش برای کپی به کلیپ‌برد
-        const clipboardSuccess = await copyToClipboard(data);
-        if (clipboardSuccess) {
-          status.innerText = '✅ کانفیگ دریافت و کپی شد!';
+        const copied = await copyToClipboard(data);
+        if (copied) {
+          status.innerText = '✅ کانفیگ کپی شد!';
         } else {
-          status.innerText = '✅ کانفیگ دریافت شد (کپی دستی کنید)';
+          status.innerText = '✅ کانفیگ دریافت شد (کپی دستی)';
         }
 
-        // تلاش برای باز کردن Hiddify با روش‌های مختلف
         await tryOpenHiddify(data);
-
-      } catch (err) {
-        console.error('خطا:', err);
-        status.innerText = `❌ خطا: ${err.message}`;
+      } catch (e) {
+        status.innerText = `❌ خطا: ${e.message}`;
         status.className = 'status error';
         instructions.style.display = 'block';
       } finally {
@@ -291,159 +242,43 @@
       }
     });
 
-    // دکمه کپی دستی
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('manualCopyBtn').addEventListener('click', async () => {
-        const configDisplay = document.getElementById('configDisplay');
-        const config = configDisplay.innerText;
-        const success = await copyToClipboard(config);
-        const btn = document.getElementById('manualCopyBtn');
-        
-        if (success) {
-          btn.innerText = '✅ کپی شد!';
-          btn.style.background = '#059669';
-          setTimeout(() => {
-            btn.innerText = '🔄 تلاش مجدد کپی';
-            btn.style.background = '#059669';
-          }, 2000);
-        } else {
-          btn.innerText = '❌ کپی نشد - دستی انتخاب کنید';
-          btn.style.background = '#dc2626';
-          setTimeout(() => {
-            btn.innerText = '🔄 تلاش مجدد کپی';
-            btn.style.background = '#059669';
-          }, 3000);
-        }
-      });
-    });
-
-    // تابع کپی به کلیپ‌برد با روش‌های مختلف
     async function copyToClipboard(text) {
-      // روش 1: navigator.clipboard (مدرن)
-      if (navigator.clipboard && window.isSecureContext) {
+      if (navigator.clipboard) {
         try {
           await navigator.clipboard.writeText(text);
           return true;
-        } catch (err) {
-          console.log('Clipboard API ناموفق:', err);
-        }
+        } catch { }
       }
-      
-      // روش 2: execCommand (قدیمی ولی کارآمد)
       try {
         const textArea = document.createElement('textarea');
         textArea.value = text;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-9999px';
-        textArea.style.top = '0';
-        textArea.style.opacity = '0';
         document.body.appendChild(textArea);
         textArea.select();
-        textArea.setSelectionRange(0, 99999);
-        const successful = document.execCommand('copy');
+        const success = document.execCommand('copy');
         document.body.removeChild(textArea);
-        return successful;
-      } catch (err) {
-        console.log('execCommand ناموفق:', err);
+        return success;
+      } catch {
+        return false;
       }
-      
-      // روش 3: انتخاب متن برای کپی دستی
-      try {
-        const configDisplay = document.getElementById('configDisplay');
-        const range = document.createRange();
-        range.selectNode(configDisplay);
-        const selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
-        return false; // نیاز به کپی دستی
-      } catch (err) {
-        console.log('انتخاب متن ناموفق:', err);
-      }
-      
-      return false;
     }
+
+    document.getElementById('manualCopyBtn').addEventListener('click', async () => {
+      const text = configDisplay.innerText;
+      const success = await copyToClipboard(text);
+      const btn = document.getElementById('manualCopyBtn');
+      if (success) {
+        btn.innerText = '✅ کپی شد!';
+        setTimeout(() => btn.innerText = '🔄 تلاش مجدد کپی', 2000);
+      } else {
+        btn.innerText = '❌ کپی نشد';
+        setTimeout(() => btn.innerText = '🔄 تلاش مجدد کپی', 3000);
+      }
+    });
 
     async function tryOpenHiddify(config) {
-      const status = document.getElementById('status');
-      const instructions = document.getElementById('instructions');
-      
-      // روش 1: فرمت صحیح Hiddify URL Scheme
-      try {
-        const deeplink1 = `hiddify://import/${URL}#دریافت_اتوماتیک`;
-        window.location.href = deeplink1;
-        
-        // صبر کوتاه برای چک کردن موفقیت
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        status.innerText = '✅ Hiddify باز شد! کانفیگ در حال اضافه شدن...';
-        return;
-      } catch (e) {
-        console.log('روش 1 ناموفق:', e);
-      }
-
-      // روش 2: بدون fragment
-      try {
-        const deeplink2 = `hiddify://import/${URL}`;
-        window.location.href = deeplink2;
-        
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        status.innerText = '✅ Hiddify باز شد! کانفیگ در حال اضافه شدن...';
-        return;
-      } catch (e) {
-        console.log('روش 2 ناموفق:', e);
-      }
-
-      // روش 3: Intent URL برای اندروید
-      if (navigator.userAgent.includes('Android')) {
-        try {
-          const intentUrl = `intent://import/${encodeURIComponent(URL)}#Intent;package=app.hiddify.com;scheme=hiddify;end`;
-          window.location.href = intentUrl;
-          
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          
-          status.innerText = '✅ Hiddify باز شد! کانفیگ در حال اضافه شدن...';
-          return;
-        } catch (e) {
-          console.log('روش 3 ناموفق:', e);
-        }
-      }
-
-      // روش 4: تلاش با URL encode شده
-      try {
-        const encodedUrl = encodeURIComponent(URL);
-        const deeplink4 = `hiddify://import/${encodedUrl}#دریافت_اتوماتیک`;
-        window.location.href = deeplink4;
-        
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        status.innerText = '✅ Hiddify باز شد! کانفیگ در حال اضافه شدن...';
-        return;
-      } catch (e) {
-        console.log('روش 4 ناموفق:', e);
-      }
-
-      // اگر همه روش‌ها ناموفق بودند
-      status.innerText = '⚠️ کانفیگ آماده است - لطفاً دستی وارد کنید';
-      instructions.style.display = 'block';
-      
-      // تلاش برای باز کردن store اگر اپ نصب نیست
-      setTimeout(() => {
-        if (navigator.userAgent.includes('Android')) {
-          window.open('https://play.google.com/store/apps/details?id=app.hiddify.com', '_blank');
-        } else if (navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad')) {
-          window.open('https://apps.apple.com/app/hiddify/id6596777532', '_blank');
-        }
-      }, 3000);
-    }
-
-    // چک کردن دسترسی به کلیپ‌برد
-    if (!navigator.clipboard) {
-      document.addEventListener('DOMContentLoaded', () => {
-        const status = document.getElementById('status');
-        status.innerText = '⚠️ دسترسی کلیپ‌برد محدود است';
-        status.className = 'status error';
-      });
+      const deepLink = `hiddify://import/${encodeURIComponent(CONFIG_URL)}#دریافت_اتوماتیک`;
+      window.location.href = deepLink;
+      await new Promise(resolve => setTimeout(resolve, 1500));
     }
   </script>
 </body>
