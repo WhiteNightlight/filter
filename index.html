@@ -302,7 +302,7 @@
 
     // Encrypted utility functions
     async function _0x3n4o(text) {
-      const _0x5p6q = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text + 'v2ray_salt_' + Date.now().toString().slice(0, 8)));
+      const _0x5p6q = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
       return Array.from(new Uint8Array(_0x5p6q)).map(b => b.toString(16).padStart(2,'0')).join('');
     }
 
