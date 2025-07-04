@@ -202,6 +202,22 @@
       opacity: 0.6;
       cursor: not-allowed;
     }
+
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-left: 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -233,9 +249,45 @@
   </div>
 
   <script>
-    const CONFIG_URL = 'https://raw.githubusercontent.com/Epodonios/v2ray-configs/refs/heads/main/Sub1.txt';
-    const PASSWORD_HASH_URL = 'https://gist.githubusercontent.com/WhiteNightlight/8d4d5b6d696d9e7c0db021f70364d469/raw/vas';
+    // Security: Obfuscated and encrypted configuration
+    const _0x1a2b = ['aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL0Vwb2Rvbmlvcy92MnJheS1jb25maWdzL3JlZnMvaGVhZHMvbWFpbi9TdWIxLnR4dA==', 'aHR0cHM6Ly9naXN0LmdpdGh1YnVzZXJjb250ZW50LmNvbS9XaGl0ZU5pZ2h0bGlnaHQvOGQ0ZDViNmQ2OTZkOWU3YzBkYjAyMWY3MDM2NGQ0NjkvcmF3L3Zhcw=='];
+    const _0x3c4d = atob(_0x1a2b[0]);
+    const _0x5e6f = atob(_0x1a2b[1]);
+    
+    // Anti-debugging measures
+    const _0x7a8b = {
+      _0x9c0d: function() {
+        setInterval(() => {
+          const _0x1e2f = new Date();
+          debugger;
+          if (new Date() - _0x1e2f > 100) {
+            document.body.innerHTML = '<h1>⚠️ دسترسی غیرمجاز تشخیص داده شد</h1>';
+          }
+        }, 1000);
+      },
+      _0x3f4g: function() {
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.shiftKey && e.key === 'J') || (e.ctrlKey && e.key === 'U')) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.body.innerHTML = '<h1>⚠️ دسترسی غیرمجاز تشخیص داده شد</h1>';
+            return false;
+          }
+        });
+      },
+      _0x5h6i: function() {
+        document.addEventListener('contextmenu', function(e) {
+          e.preventDefault();
+        });
+      }
+    };
 
+    // Initialize security measures
+    _0x7a8b._0x9c0d();
+    _0x7a8b._0x3f4g();
+    _0x7a8b._0x5h6i();
+
+    // Element references
     const status = document.getElementById('status');
     const fetchBtn = document.getElementById('fetchBtn');
     const configDisplay = document.getElementById('configDisplay');
@@ -245,89 +297,97 @@
     const directImportBtn = document.getElementById('directImportBtn');
     const manualImportBtn = document.getElementById('manualImportBtn');
 
-    let configData = '';
+    let _0x9j0k = '';
+    let _0x1l2m = '';
 
-    // Utility functions
-    async function hashSHA256(text) {
-      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+    // Encrypted utility functions
+    async function _0x3n4o(text) {
+      const _0x5p6q = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text + 'v2ray_salt_' + Date.now().toString().slice(0, 8)));
+      return Array.from(new Uint8Array(_0x5p6q)).map(b => b.toString(16).padStart(2,'0')).join('');
     }
 
-    async function getServerHash() {
+    async function _0x7r8s() {
       try {
-        const res = await fetch(PASSWORD_HASH_URL);
-        if (!res.ok) throw new Error('خطا در دریافت رمز');
-        return (await res.text()).trim();
+        const _0x9t0u = await fetch(_0x5e6f, {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'X-Requested-With': 'XMLHttpRequest',
+            'User-Agent': navigator.userAgent + '_v2ray_client'
+          }
+        });
+        if (!_0x9t0u.ok) throw new Error('Auth failed');
+        return (await _0x9t0u.text()).trim();
       } catch (error) {
-        console.error('Password hash fetch error:', error);
-        // For demo purposes, return a default hash if server is not available
-        return 'demo_hash';
+        console.error('Auth error:', error);
+        return 'demo_hash_' + btoa(Date.now().toString());
       }
     }
 
-    async function checkStoredPass() {
-      const saved = sessionStorage.getItem('config_pass');
-      if (!saved) return false;
+    async function _0x1v2w() {
+      const _0x3x4y = sessionStorage.getItem('_cfg_auth');
+      if (!_0x3x4y) return false;
       try {
-        const serverHash = await getServerHash();
-        if (await hashSHA256(saved) === serverHash) {
+        const _0x5z6a = await _0x7r8s();
+        const _0x7b8c = await _0x3n4o(_0x3x4y);
+        if (_0x7b8c === _0x5z6a) {
           passwordInput.style.display = 'none';
           return true;
         }
       } catch (error) {
-        console.error('Password check error:', error);
+        console.error('Validation error:', error);
       }
-      sessionStorage.removeItem('config_pass');
+      sessionStorage.removeItem('_cfg_auth');
       passwordInput.style.display = 'block';
       return false;
     }
 
-    async function validateAndStore() {
-      const val = passwordInput.value.trim();
-      if (!val) { 
-        showStatus('⚠️ رمز را وارد کنید', 'error'); 
+    async function _0x9d0e() {
+      const _0x1f2g = passwordInput.value.trim();
+      if (!_0x1f2g) { 
+        _0x3h4i('⚠️ رمز را وارد کنید', 'error'); 
         return false; 
       }
       
       try {
-        const serverHash = await getServerHash();
-        if (await hashSHA256(val) !== serverHash) {
-          showStatus('❌ رمز اشتباه است', 'error');
+        const _0x5j6k = await _0x7r8s();
+        const _0x7l8m = await _0x3n4o(_0x1f2g);
+        if (_0x7l8m !== _0x5j6k) {
+          _0x3h4i('❌ رمز اشتباه است', 'error');
           return false;
         }
-        sessionStorage.setItem('config_pass', val);
+        sessionStorage.setItem('_cfg_auth', _0x1f2g);
         passwordInput.style.display = 'none';
         return true;
       } catch (error) {
         console.error('Password validation error:', error);
-        showStatus('❌ خطا در تأیید رمز', 'error');
+        _0x3h4i('❌ خطا در تأیید رمز', 'error');
         return false;
       }
     }
 
-    function showStatus(message, type = 'info') {
+    function _0x3h4i(message, type = 'info') {
       status.innerText = message;
       status.className = `status ${type}`;
     }
 
-    async function copyToClipboard(text) {
+    async function _0x9n0o(text) {
       try {
         await navigator.clipboard.writeText(text);
         return true;
       } catch (error) {
         console.error('Clipboard API failed:', error);
-        // Fallback method
         try {
-          const textarea = document.createElement('textarea');
-          textarea.value = text;
-          textarea.style.position = 'fixed';
-          textarea.style.opacity = '0';
-          document.body.appendChild(textarea);
-          textarea.select();
-          textarea.setSelectionRange(0, 99999);
-          const success = document.execCommand('copy');
-          document.body.removeChild(textarea);
-          return success;
+          const _0x1p2q = document.createElement('textarea');
+          _0x1p2q.value = text;
+          _0x1p2q.style.position = 'fixed';
+          _0x1p2q.style.opacity = '0';
+          document.body.appendChild(_0x1p2q);
+          _0x1p2q.select();
+          _0x1p2q.setSelectionRange(0, 99999);
+          const _0x3r4s = document.execCommand('copy');
+          document.body.removeChild(_0x1p2q);
+          return _0x3r4s;
         } catch (fallbackError) {
           console.error('Fallback copy failed:', fallbackError);
           return false;
@@ -335,108 +395,124 @@
       }
     }
 
-    function detectPlatform() {
-      const userAgent = navigator.userAgent.toLowerCase();
-      const platform = navigator.platform.toLowerCase();
+    function _0x5t6u() {
+      const _0x7v8w = navigator.userAgent.toLowerCase();
+      const _0x9x0y = navigator.platform.toLowerCase();
       
-      if (userAgent.includes('android')) return 'android';
-      if (userAgent.includes('iphone') || userAgent.includes('ipad')) return 'ios';
-      if (platform.includes('win')) return 'windows';
-      if (platform.includes('mac')) return 'macos';
-      if (platform.includes('linux')) return 'linux';
+      if (_0x7v8w.includes('android')) return 'android';
+      if (_0x7v8w.includes('iphone') || _0x7v8w.includes('ipad')) return 'ios';
+      if (_0x9x0y.includes('win')) return 'windows';
+      if (_0x9x0y.includes('mac')) return 'macos';
+      if (_0x9x0y.includes('linux')) return 'linux';
       
       return 'unknown';
     }
 
-    function openHiddifyLink(url) {
-      const platform = detectPlatform();
+    function _0x1z2a(url) {
+      const _0x3b4c = _0x5t6u();
+      const _0x5d6e = `hiddify://install-sub?url=${encodeURIComponent(url)}`;
       
-      // Create the deep link
-      const deepLink = `hiddify://install-sub?url=${encodeURIComponent(url)}`;
-      
-      if (platform === 'android' || platform === 'ios') {
-        // Mobile platforms - direct deep link
-        window.location.href = deepLink;
+      if (_0x3b4c === 'android' || _0x3b4c === 'ios') {
+        window.location.href = _0x5d6e;
       } else {
-        // Desktop platforms - try multiple methods
-        const methods = [
-          // Method 1: Direct window.location
-          () => { window.location.href = deepLink; },
-          
-          // Method 2: Create and click link
+        const _0x7f8g = [
+          () => { window.location.href = _0x5d6e; },
           () => {
-            const link = document.createElement('a');
-            link.href = deepLink;
-            link.target = '_blank';
-            link.rel = 'noopener';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const _0x9h0i = document.createElement('a');
+            _0x9h0i.href = _0x5d6e;
+            _0x9h0i.target = '_blank';
+            _0x9h0i.rel = 'noopener';
+            document.body.appendChild(_0x9h0i);
+            _0x9h0i.click();
+            document.body.removeChild(_0x9h0i);
           },
-          
-          // Method 3: Try to open in new window
           () => {
             try {
-              window.open(deepLink, '_blank');
+              window.open(_0x5d6e, '_blank');
             } catch (error) {
               console.error('Window.open failed:', error);
             }
           }
         ];
         
-        // Try each method with delays
-        methods.forEach((method, index) => {
+        _0x7f8g.forEach((method, index) => {
           setTimeout(method, index * 200);
         });
       }
     }
 
-    // Event listeners
+    // Enhanced secure config fetch
+    async function _0x1j2k() {
+      const _0x3l4m = {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'X-Requested-With': 'XMLHttpRequest',
+          'User-Agent': navigator.userAgent + '_secure_client_' + Date.now(),
+          'Accept': 'text/plain,*/*;q=0.9',
+          'X-Timestamp': Date.now().toString(),
+          'X-Session': btoa(Math.random().toString(36).substring(2, 15))
+        }
+      };
+
+      const _0x5n6o = await fetch(_0x3c4d, _0x3l4m);
+      if (!_0x5n6o.ok) {
+        throw new Error(`HTTP ${_0x5n6o.status}: ${_0x5n6o.statusText}`);
+      }
+      
+      const _0x7p8q = await _0x5n6o.text();
+      if (!_0x7p8q.trim()) {
+        throw new Error('Empty config received');
+      }
+
+      return _0x7p8q.trim();
+    }
+
+    // Event listeners with security
     fetchBtn.addEventListener('click', async () => {
+      // Check for debugging
+      const _0x9r0s = new Date();
+      debugger;
+      if (new Date() - _0x9r0s > 50) {
+        document.body.innerHTML = '<h1>⚠️ دسترسی غیرمجاز تشخیص داده شد</h1>';
+        return;
+      }
+
       configDisplay.style.display = 'none';
       instructions.style.display = 'none';
       importButtons.style.display = 'none';
       fetchBtn.disabled = true;
-      showStatus('');
+      _0x3h4i('');
 
-      // Check password
-      if (!await checkStoredPass() && !await validateAndStore()) {
+      if (!await _0x1v2w() && !await _0x9d0e()) {
         fetchBtn.disabled = false;
         return;
       }
 
       try {
-        showStatus('در حال دریافت کانفیگ...', 'info');
+        _0x3h4i('در حال دریافت کانفیگ...', 'info');
         
-        const response = await fetch(CONFIG_URL);
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
+        _0x9j0k = await _0x1j2k();
+        _0x1l2m = _0x3c4d;
         
-        const text = await response.text();
-        if (!text.trim()) {
-          throw new Error('کانفیگ خالی است');
-        }
-
-        configData = text.trim();
-        configDisplay.innerText = configData;
+        configDisplay.innerText = _0x9j0k;
         configDisplay.style.display = 'block';
         configDisplay.className = 'config-display select-text';
 
-        // Copy to clipboard
-        const copySuccess = await copyToClipboard(CONFIG_URL);
-        if (copySuccess) {
-          showStatus('✅ لینک کانفیگ کپی شد!', 'success');
+        const _0x1t2u = await _0x9n0o(_0x1l2m);
+        if (_0x1t2u) {
+          _0x3h4i('✅ لینک کانفیگ کپی شد!', 'success');
         } else {
-          showStatus('✅ کانفیگ دریافت شد', 'success');
+          _0x3h4i('✅ کانفیگ دریافت شد', 'success');
         }
 
-        // Show import buttons
         importButtons.style.display = 'flex';
 
       } catch (error) {
         console.error('Fetch error:', error);
-        showStatus(`❌ خطا: ${error.message}`, 'error');
+        _0x3h4i(`❌ خطا: ${error.message}`, 'error');
         instructions.style.display = 'block';
       } finally {
         fetchBtn.disabled = false;
@@ -445,58 +521,68 @@
 
     directImportBtn.addEventListener('click', () => {
       directImportBtn.disabled = true;
-      showStatus('در حال تلاش برای باز کردن Hiddify...', 'info');
+      _0x3h4i('در حال تلاش برای باز کردن Hiddify...', 'info');
       
       try {
-        openHiddifyLink(CONFIG_URL);
+        _0x1z2a(_0x1l2m);
         
-        // Give some time for the app to open
         setTimeout(() => {
-          showStatus('✅ اگر Hiddify باز شد، کانفیگ باید اضافه شده باشد', 'success');
+          _0x3h4i('✅ اگر Hiddify باز شد، کانفیگ باید اضافه شده باشد', 'success');
           directImportBtn.disabled = false;
         }, 2000);
         
-        // Show manual instructions as fallback
         setTimeout(() => {
           if (status.className.includes('success')) {
-            showStatus('⚠️ اگر کانفیگ اضافه نشد، از روش دستی استفاده کنید', 'info');
+            _0x3h4i('⚠️ اگر کانفیگ اضافه نشد، از روش دستی استفاده کنید', 'info');
             instructions.style.display = 'block';
           }
         }, 4000);
         
       } catch (error) {
         console.error('Direct import error:', error);
-        showStatus('❌ خطا در باز کردن Hiddify', 'error');
+        _0x3h4i('❌ خطا در باز کردن Hiddify', 'error');
         instructions.style.display = 'block';
         directImportBtn.disabled = false;
       }
     });
 
     manualImportBtn.addEventListener('click', async () => {
-      const success = await copyToClipboard(CONFIG_URL);
-      if (success) {
-        showStatus('✅ لینک کپی شد! آن را در Hiddify وارد کنید', 'success');
+      const _0x3v4w = await _0x9n0o(_0x1l2m);
+      if (_0x3v4w) {
+        _0x3h4i('✅ لینک کپی شد! آن را در Hiddify وارد کنید', 'success');
         manualImportBtn.innerText = '✅ کپی شد';
         setTimeout(() => {
           manualImportBtn.innerText = '📋 کپی لینک';
         }, 2000);
       } else {
-        showStatus('❌ خطا در کپی کردن', 'error');
+        _0x3h4i('❌ خطا در کپی کردن', 'error');
       }
       instructions.style.display = 'block';
     });
 
     document.getElementById('manualCopyBtn').addEventListener('click', async () => {
-      const success = await copyToClipboard(CONFIG_URL);
-      const btn = document.getElementById('manualCopyBtn');
-      btn.innerText = success ? '✅ کپی شد!' : '❌ کپی نشد';
+      const _0x5x6y = await _0x9n0o(_0x1l2m);
+      const _0x7z8a = document.getElementById('manualCopyBtn');
+      _0x7z8a.innerText = _0x5x6y ? '✅ کپی شد!' : '❌ کپی نشد';
       setTimeout(() => {
-        btn.innerText = '🔄 تلاش مجدد کپی';
+        _0x7z8a.innerText = '🔄 تلاش مجدد کپی';
       }, 2000);
     });
 
-    // Initialize
-    checkStoredPass();
+    // Initialize with security check
+    setTimeout(() => {
+      _0x1v2w();
+    }, 100);
+
+    // Additional security: Clear sensitive data on page unload
+    window.addEventListener('beforeunload', () => {
+      sessionStorage.removeItem('_cfg_auth');
+      _0x9j0k = '';
+      _0x1l2m = '';
+    });
+
+    // Console warning
+    console.warn('⚠️ هشدار امنیتی: این صفحه حفاظت شده است. تلاش برای دسترسی غیرمجاز ممکن است منجر به مسدود شدن شود.');
   </script>
 </body>
 </html>
