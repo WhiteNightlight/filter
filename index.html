@@ -25,7 +25,7 @@
       background: rgba(255, 255, 255, 0.95);
       border-radius: 20px;
       padding: 40px;
-      max-width: 500px;
+      max-width: 600px;
       width: 100%;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
       text-align: center;
@@ -136,6 +136,86 @@
       -ms-user-select: all;
     }
 
+    .config-count {
+      background: #e9ecef;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-weight: bold;
+      color: #495057;
+      display: none;
+    }
+
+    .import-methods {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .method-card {
+      background: #f8f9fa;
+      border: 2px solid #dee2e6;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .method-card:hover {
+      border-color: #667eea;
+      transform: translateY(-2px);
+    }
+
+    .method-card h3 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    .method-card p {
+      color: #666;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+
+    .method-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .method-btn {
+      flex: 1;
+      padding: 12px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      min-width: 140px;
+    }
+
+    .method-btn:hover {
+      background: #218838;
+      transform: translateY(-1px);
+    }
+
+    .method-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .method-btn.secondary {
+      background: #17a2b8;
+    }
+
+    .method-btn.secondary:hover {
+      background: #138496;
+    }
+
     .step-instructions {
       background: #fff3cd;
       border: 1px solid #ffeaa7;
@@ -158,49 +238,56 @@
       line-height: 1.6;
     }
 
-    .copy-btn {
-      width: 100%;
-      padding: 10px;
-      background: #17a2b8;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
+    .individual-configs {
+      background: #f8f9fa;
+      border: 2px solid #dee2e6;
+      border-radius: 10px;
+      padding: 15px;
       margin-top: 15px;
-      transition: all 0.3s ease;
+      display: none;
+      text-align: left;
     }
 
-    .copy-btn:hover {
-      background: #138496;
-    }
-
-    .import-buttons {
+    .config-item {
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
       display: flex;
-      gap: 10px;
-      margin-top: 15px;
-      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
     }
 
-    .import-btn {
+    .config-name {
       flex: 1;
-      padding: 10px;
-      background: #28a745;
+      margin-right: 10px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .config-link {
+      flex: 2;
+      margin-right: 10px;
+      color: #666;
+      word-break: break-all;
+      font-family: 'Courier New', monospace;
+    }
+
+    .config-btn {
+      background: #007bff;
       color: white;
       border: none;
+      padding: 5px 10px;
       border-radius: 5px;
       cursor: pointer;
-      font-size: 14px;
-      transition: all 0.3s ease;
-      min-width: 120px;
+      font-size: 11px;
+      white-space: nowrap;
     }
 
-    .import-btn:hover {
-      background: #218838;
-    }
-
-    .import-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
+    .config-btn:hover {
+      background: #0056b3;
     }
   </style>
 </head>
@@ -209,13 +296,34 @@
     <h2>🚀 انتقال خودکار کانفیگ</h2>
     <p>با یک کلیک، کانفیگ را دریافت و وارد Hiddify کنید</p>
     <input type="password" id="passwordInput" placeholder="رمز عبور را وارد کنید"/>
-    <button class="btn" id="fetchBtn">📡 دریافت و نصب</button>
+    <button class="btn" id="fetchBtn">📡 دریافت کانفیگ‌ها</button>
     <div class="status" id="status"></div>
+    <div class="config-count" id="configCount"></div>
     <div class="config-display" id="configDisplay"></div>
     
-    <div class="import-buttons" id="importButtons" style="display: none;">
-      <button class="import-btn" id="directImportBtn">📥 وارد کردن مستقیم</button>
-      <button class="import-btn" id="manualImportBtn">📋 کپی لینک</button>
+    <div class="import-methods" id="importMethods">
+      <div class="method-card">
+        <h3>🔄 روش 1: وارد کردن کامل (پیشنهادی)</h3>
+        <p>تمام کانفیگ‌ها را به صورت یک پروفایل واحد اضافه کنید</p>
+        <div class="method-buttons">
+          <button class="method-btn" id="directImportBtn">📥 وارد کردن مستقیم</button>
+          <button class="method-btn secondary" id="copySubBtn">📋 کپی لینک</button>
+        </div>
+      </div>
+      
+      <div class="method-card">
+        <h3>⚙️ روش 2: وارد کردن تک تک</h3>
+        <p>هر کانفیگ را جداگانه اضافه کنید</p>
+        <div class="method-buttons">
+          <button class="method-btn" id="showIndividualBtn">📋 مشاهده لیست</button>
+          <button class="method-btn secondary" id="importAllBtn">📥 وارد کردن همه</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="individual-configs" id="individualConfigs">
+      <strong>کانفیگ‌های جداگانه:</strong>
+      <div id="configList"></div>
     </div>
 
     <div class="step-instructions" id="instructions">
@@ -228,7 +336,6 @@
         <li>لینک کپی شده را وارد کنید</li>
         <li>روی "Add" کلیک کنید</li>
       </ol>
-      <button class="copy-btn" id="manualCopyBtn">🔄 تلاش مجدد کپی</button>
     </div>
   </div>
 
@@ -239,14 +346,16 @@
     const status = document.getElementById('status');
     const fetchBtn = document.getElementById('fetchBtn');
     const configDisplay = document.getElementById('configDisplay');
+    const configCount = document.getElementById('configCount');
     const instructions = document.getElementById('instructions');
     const passwordInput = document.getElementById('passwordInput');
-    const importButtons = document.getElementById('importButtons');
-    const directImportBtn = document.getElementById('directImportBtn');
-    const manualImportBtn = document.getElementById('manualImportBtn');
+    const importMethods = document.getElementById('importMethods');
+    const individualConfigs = document.getElementById('individualConfigs');
+    const configList = document.getElementById('configList');
 
     let configData = '';
-    let finalConfigUrl = '';
+    let decodedConfigs = [];
+    let subscriptionUrl = '';
 
     // Encryption/Decryption functions
     function deriveKey(password) {
@@ -285,9 +394,51 @@
       }
     }
 
-    function createDataUrl(content) {
-      const blob = new Blob([content], { type: 'text/plain' });
+    function createSubscriptionUrl(configContent) {
+      // Create a clean subscription content with proper headers
+      const headers = [
+        '#profile-title: V2Ray Configs',
+        '#profile-update-interval: 24',
+        '#subscription-userinfo: upload=0; download=0; total=107374182400; expire=1999999999',
+        ''
+      ].join('\n');
+      
+      const fullContent = headers + configContent;
+      const blob = new Blob([fullContent], { type: 'text/plain' });
       return URL.createObjectURL(blob);
+    }
+
+    function parseConfigs(configText) {
+      const lines = configText.split('\n')
+        .map(line => line.trim())
+        .filter(line => line && !line.startsWith('#'));
+      
+      const configs = [];
+      
+      for (const line of lines) {
+        if (line.includes('://')) {
+          let name = 'Config';
+          let url = line;
+          
+          // Extract name from URL fragment
+          if (line.includes('#')) {
+            const parts = line.split('#');
+            url = parts[0];
+            name = decodeURIComponent(parts[1]) || 'Config';
+          }
+          
+          // Extract protocol type
+          const protocol = url.split('://')[0].toUpperCase();
+          
+          configs.push({
+            name: `${protocol} - ${name}`,
+            url: line,
+            protocol: protocol
+          });
+        }
+      }
+      
+      return configs;
     }
 
     // Utility functions
@@ -391,7 +542,7 @@
 
     function openHiddifyLink(url) {
       const platform = detectPlatform();
-      const deepLink = `hiddify://install-sub?url=${encodeURIComponent(url)}`;
+      const deepLink = `hiddify://import/${encodeURIComponent(url)}`;
       
       if (platform === 'android' || platform === 'ios') {
         window.location.href = deepLink;
@@ -422,11 +573,40 @@
       }
     }
 
+    function renderIndividualConfigs() {
+      configList.innerHTML = '';
+      decodedConfigs.forEach((config, index) => {
+        const configItem = document.createElement('div');
+        configItem.className = 'config-item';
+        configItem.innerHTML = `
+          <div class="config-name">${config.name}</div>
+          <div class="config-link">${config.url.substring(0, 50)}...</div>
+          <button class="config-btn" onclick="importSingleConfig(${index})">📥 Import</button>
+        `;
+        configList.appendChild(configItem);
+      });
+    }
+
+    window.importSingleConfig = function(index) {
+      const config = decodedConfigs[index];
+      if (!config) return;
+      
+      showStatus(`در حال وارد کردن: ${config.name}`, 'info');
+      openHiddifyLink(config.url);
+      
+      setTimeout(() => {
+        showStatus(`✅ ${config.name} ارسال شد`, 'success');
+      }, 1000);
+    };
+
     // Event listeners
     fetchBtn.addEventListener('click', async () => {
+      // Reset UI
       configDisplay.style.display = 'none';
+      configCount.style.display = 'none';
+      importMethods.style.display = 'none';
+      individualConfigs.style.display = 'none';
       instructions.style.display = 'none';
-      importButtons.style.display = 'none';
       fetchBtn.disabled = true;
       showStatus('');
 
@@ -452,28 +632,32 @@
         showStatus('در حال رمزگشایی کانفیگ...', 'info');
         
         const password = sessionStorage.getItem('config_pass');
-        const decryptedConfig = decryptConfig(encryptedText.trim(), password);
+        configData = decryptConfig(encryptedText.trim(), password);
         
-        if (!decryptedConfig || !decryptedConfig.includes('://')) {
+        if (!configData || !configData.includes('://')) {
           throw new Error('کانفیگ نامعتبر یا رمزگشایی ناموفق');
         }
 
-        configData = decryptedConfig;
+        // Parse individual configs
+        decodedConfigs = parseConfigs(configData);
+        
+        if (decodedConfigs.length === 0) {
+          throw new Error('هیچ کانفیگ معتبری یافت نشد');
+        }
+
+        // Display results
         configDisplay.innerText = configData;
         configDisplay.style.display = 'block';
         configDisplay.className = 'config-display select-text';
+        
+        configCount.innerText = `✅ ${decodedConfigs.length} کانفیگ پیدا شد`;
+        configCount.style.display = 'block';
 
-        // Create a data URL for the decrypted config
-        finalConfigUrl = createDataUrl(configData);
+        // Create subscription URL
+        subscriptionUrl = createSubscriptionUrl(configData);
 
-        const copySuccess = await copyToClipboard(finalConfigUrl);
-        if (copySuccess) {
-          showStatus('✅ لینک کانفیگ کپی شد!', 'success');
-        } else {
-          showStatus('✅ کانفیگ رمزگشایی و آماده شد', 'success');
-        }
-
-        importButtons.style.display = 'flex';
+        showStatus('✅ کانفیگ‌ها با موفقیت دریافت شدند', 'success');
+        importMethods.style.display = 'block';
 
       } catch (error) {
         console.error('Fetch/Decrypt error:', error);
@@ -484,75 +668,69 @@
       }
     });
 
-    directImportBtn.addEventListener('click', () => {
-      if (!finalConfigUrl) {
+    // Import method event listeners
+    document.getElementById('directImportBtn').addEventListener('click', () => {
+      if (!subscriptionUrl) {
         showStatus('❌ ابتدا کانفیگ را دریافت کنید', 'error');
         return;
       }
       
-      directImportBtn.disabled = true;
-      showStatus('در حال تلاش برای باز کردن Hiddify...', 'info');
+      showStatus('در حال وارد کردن تمام کانفیگ‌ها...', 'info');
+      openHiddifyLink(subscriptionUrl);
       
-      try {
-        openHiddifyLink(finalConfigUrl);
-        
-        setTimeout(() => {
-          showStatus('✅ اگر Hiddify باز شد، کانفیگ باید اضافه شده باشد', 'success');
-          directImportBtn.disabled = false;
-        }, 2000);
-        
-        setTimeout(() => {
-          if (status.className.includes('success')) {
-            showStatus('⚠️ اگر کانفیگ اضافه نشد، از روش دستی استفاده کنید', 'info');
-            instructions.style.display = 'block';
-          }
-        }, 4000);
-        
-      } catch (error) {
-        console.error('Direct import error:', error);
-        showStatus('❌ خطا در باز کردن Hiddify', 'error');
-        instructions.style.display = 'block';
-        directImportBtn.disabled = false;
-      }
+      setTimeout(() => {
+        showStatus('✅ کانفیگ‌ها ارسال شدند', 'success');
+      }, 2000);
     });
 
-    manualImportBtn.addEventListener('click', async () => {
-      if (!finalConfigUrl) {
+    document.getElementById('copySubBtn').addEventListener('click', async () => {
+      if (!subscriptionUrl) {
         showStatus('❌ ابتدا کانفیگ را دریافت کنید', 'error');
         return;
       }
       
-      const success = await copyToClipboard(finalConfigUrl);
+      const success = await copyToClipboard(subscriptionUrl);
       if (success) {
-        showStatus('✅ لینک کپی شد! آن را در Hiddify وارد کنید', 'success');
-        manualImportBtn.innerText = '✅ کپی شد';
-        setTimeout(() => {
-          manualImportBtn.innerText = '📋 کپی لینک';
-        }, 2000);
+        showStatus('✅ لینک کپی شد!', 'success');
       } else {
         showStatus('❌ خطا در کپی کردن', 'error');
       }
       instructions.style.display = 'block';
     });
 
-    document.getElementById('manualCopyBtn').addEventListener('click', async () => {
-      if (!finalConfigUrl) {
+    document.getElementById('showIndividualBtn').addEventListener('click', () => {
+      if (decodedConfigs.length === 0) {
         showStatus('❌ ابتدا کانفیگ را دریافت کنید', 'error');
         return;
       }
       
-      const success = await copyToClipboard(finalConfigUrl);
-      const btn = document.getElementById('manualCopyBtn');
-      btn.innerText = success ? '✅ کپی شد!' : '❌ کپی نشد';
-      setTimeout(() => {
-        btn.innerText = '🔄 تلاش مجدد کپی';
-      }, 2000);
+      renderIndividualConfigs();
+      individualConfigs.style.display = 'block';
     });
 
-    // Cleanup data URLs when page unloads
+    document.getElementById('importAllBtn').addEventListener('click', () => {
+      if (decodedConfigs.length === 0) {
+        showStatus('❌ ابتدا کانفیگ را دریافت کنید', 'error');
+        return;
+      }
+      
+      showStatus('در حال وارد کردن تمام کانفیگ‌ها...', 'info');
+      
+      decodedConfigs.forEach((config, index) => {
+        setTimeout(() => {
+          openHiddifyLink(config.url);
+        }, index * 1000);
+      });
+      
+      setTimeout(() => {
+        showStatus(`✅ تمام ${decodedConfigs.length} کانفیگ ارسال شدند`, 'success');
+      }, decodedConfigs.length * 1000);
+    });
+
+    // Cleanup URLs when page unloads
     window.addEventListener('beforeunload', () => {
-      if (finalConfigUrl && finalConfigUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(finalConfigUrl);
+      if (subscriptionUrl && subscriptionUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(subscriptionUrl);
       }
     });
 
