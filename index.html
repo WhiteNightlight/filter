@@ -28,10 +28,36 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
+      /* Fixed mobile layout */
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       padding: 20px;
+      /* Prevent horizontal scroll on mobile */
+      overflow-x: hidden;
+    }
+
+    /* Mobile-specific fixes */
+    @media (max-width: 768px) {
+      body {
+        /* Use dynamic viewport height for mobile */
+        min-height: 100dvh;
+        /* Fallback for browsers that don't support dvh */
+        min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        /* Ensure proper centering on mobile */
+        justify-content: flex-start;
+        padding: 10px;
+        padding-top: max(20px, env(safe-area-inset-top));
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+      }
+    }
+
+    /* iOS Safari specific fix */
+    @supports (-webkit-touch-callout: none) {
+      body {
+        min-height: -webkit-fill-available;
+      }
     }
 
     .seo-content {
@@ -52,6 +78,31 @@
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
       text-align: center;
       backdrop-filter: blur(10px);
+      /* Ensure box doesn't get cut off on mobile */
+      margin: auto;
+      /* Add max-height to prevent overflow on very small screens */
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    /* Mobile adjustments for the box */
+    @media (max-width: 768px) {
+      .box {
+        padding: 30px 20px;
+        margin: 20px 0;
+        border-radius: 15px;
+        max-height: none;
+        /* Remove the height constraint on mobile */
+        overflow-y: visible;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .box {
+        padding: 20px 15px;
+        margin: 10px 0;
+        border-radius: 10px;
+      }
     }
 
     .main-title {
@@ -62,6 +113,12 @@
       text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
     }
 
+    @media (max-width: 480px) {
+      .main-title {
+        font-size: 24px;
+      }
+    }
+
     .subtitle {
       color: #667eea;
       margin-bottom: 10px;
@@ -69,10 +126,22 @@
       font-weight: 600;
     }
 
+    @media (max-width: 480px) {
+      .subtitle {
+        font-size: 16px;
+      }
+    }
+
     h2 {
       color: #333;
       margin-bottom: 10px;
       font-size: 24px;
+    }
+
+    @media (max-width: 480px) {
+      h2 {
+        font-size: 20px;
+      }
     }
 
     p {
