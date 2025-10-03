@@ -3,10 +3,11 @@ name: Secure Config Update
 on:
   schedule:
     - cron: '30 17 * * *'  # 9:00 PM Iran time (UTC+3:30)
-    workflow_dispatch:
+  workflow_dispatch:
   push:
     branches:
       - main
+
 jobs:
   update-configs:
     runs-on: ubuntu-latest
